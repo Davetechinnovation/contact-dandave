@@ -6,7 +6,7 @@ const fs = require("fs"); // File system module to save messages
 const cors = require("cors"); // Middleware to handle CORS policy
 const nodemailer = require("nodemailer"); // Email sending module
 const useragent = require("useragent"); // Module to extract device details
-const { styleText } = require("util");
+const axios = require("axios"); // HTTP client for API requests
 
 const app = express();
 
@@ -45,8 +45,19 @@ app.post("/submit-form", async (req, res) => {
         const agent = useragent.parse(req.headers["user-agent"]);
         const deviceInfo = agent.os ? `${agent.toString()} (${agent.os.toString()})` : agent.toString();
 
-        console.log("Parsed User-Agent:", agent);
-        console.log("Extracted Device Info:", deviceInfo);
+        // 🌍 Fetch user location and ISP details using ipinfo.io API
+        let locationData = {};
+                async function getUserLocation(ip) {
+                try {
+                    const response = await axios.get(`http://ip-api.com/json/${ip}`);
+                    return response.data;  // Contains country, city, ISP, mobile/wifi, etc.
+                } catch (error) {
+                    console.error("Error fetching IP info:", error.message);
+                    return null;
+                }
+            }
+
+        const { city, region, country, org } = locationData; // Extract location details
 
         // 💌 Email to Admin (You)
         const adminMailOptions = {
@@ -61,6 +72,8 @@ app.post("/submit-form", async (req, res) => {
 
             🌐 IP Address: ${ip}
             📱 Device: ${deviceInfo}
+            🏙 Location: ${city}, ${region}, ${country}
+            📡 ISP: ${org}
             📅 Date: ${new Date().toISOString()}
             ------------------------------------
             `
@@ -84,7 +97,7 @@ app.post("/submit-form", async (req, res) => {
 
             Best regards,  
             Dave Tech Innovation Team`
-                    };
+        };
 
         // Send both emails asynchronously
         await Promise.all([
@@ -100,6 +113,8 @@ app.post("/submit-form", async (req, res) => {
             message, 
             ip, 
             device: deviceInfo, 
+            location: `${city}, ${region}, ${country}`,
+            isp: org,
             date: new Date().toISOString() 
         };
         messages.push(newMessage);
@@ -110,7 +125,7 @@ app.post("/submit-form", async (req, res) => {
 
     } catch (error) {
         console.error("❌ Error:", error.message);
-        return res.status(500).json({error: "An error occurred while sending the message please check ur internet connection and try again" });
+        return res.status(500).json({error: "An error occurred while sending the message please check your internet connection and try again" });
     }
 });
 
