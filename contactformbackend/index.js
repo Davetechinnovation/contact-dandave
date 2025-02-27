@@ -45,19 +45,27 @@ app.post("/submit-form", async (req, res) => {
         const agent = useragent.parse(req.headers["user-agent"]);
         const deviceInfo = agent.os ? `${agent.toString()} (${agent.os.toString()})` : agent.toString();
 
-        // 🌍 Fetch user location and ISP details using ipinfo.io API
-        let locationData = {};
-                async function getUserLocation(ip) {
-                try {
-                    const response = await axios.get(`http://ip-api.com/json/${ip}`);
-                    return response.data;  // Contains country, city, ISP, mobile/wifi, etc.
-                } catch (error) {
-                    console.error("Error fetching IP info:", error.message);
-                    return null;
-                }
+        // 🌍 Fetch user location and ISP details using ip-api.com
+        async function getUserLocation(ip) {
+            try {
+                const response = await axios.get(`http://ip-api.com/json/${ip}`);
+                return response.data;  // Contains country, city, ISP, mobile/wifi, etc.
+            } catch (error) {
+                console.error("Error fetching IP info:", error.message);
+                return null;
             }
+        }
 
-        const { city, region, country, org } = locationData; // Extract location details
+        // Call the function to get location data
+        const locationData = await getUserLocation(ip);
+
+        if (!locationData) {
+            return res.status(500).json({ error: "Failed to fetch user location data." });
+        }
+
+        // Extract all necessary location details
+        const { city, region, country, isp, lat, lon, timezone, mobile } = locationData;
+        const connectionType = mobile ? "Mobile" : "Wi-Fi";
 
         // 💌 Email to Admin (You)
         const adminMailOptions = {
@@ -73,10 +81,12 @@ app.post("/submit-form", async (req, res) => {
             🌐 IP Address: ${ip}
             📱 Device: ${deviceInfo}
             🏙 Location: ${city}, ${region}, ${country}
-            📡 ISP: ${org}
+            📡 ISP: ${isp}
+            🌍 Coordinates: Latitude ${lat}, Longitude ${lon}
+            ⏰ Timezone: ${timezone}
+            📶 Connection Type: ${connectionType}
             📅 Date: ${new Date().toISOString()}
-            ------------------------------------
-            `
+            ------------------------------------`
         };
 
         // 💌 Email to the Sender (User)
@@ -114,7 +124,10 @@ app.post("/submit-form", async (req, res) => {
             ip, 
             device: deviceInfo, 
             location: `${city}, ${region}, ${country}`,
-            isp: org,
+            isp, 
+            coordinates: { lat, lon }, 
+            timezone, 
+            connection: connectionType, 
             date: new Date().toISOString() 
         };
         messages.push(newMessage);
@@ -125,7 +138,7 @@ app.post("/submit-form", async (req, res) => {
 
     } catch (error) {
         console.error("❌ Error:", error.message);
-        return res.status(500).json({error: "An error occurred while sending the message please check your internet connection and try again" });
+        return res.status(500).json({error: "An error occurred while sending the message. Please check your internet connection and try again." });
     }
 });
 

@@ -909,5 +909,16 @@
     "device": "Chrome 133.0.0 / Windows 10.0.0 (Windows 10.0.0)",
     "location": "undefined, undefined, undefined",
     "date": "2025-02-27T20:28:20.726Z"
+  },
+  {
+    "name": "Onyekwere Henry",
+    "email": "onyekwerehenry@gmail.com",
+    "message": "hello isi aki",
+    "ip": "::1",
+    "device": "Chrome 133.0.0 / Windows 10.0.0 (Windows 10.0.0)",
+    "location": "undefined, undefined, undefined",
+    "coordinates": {},
+    "connection": "Wi-Fi",
+    "date": "2025-02-27T20:41:55.877Z"
   }
 ]
