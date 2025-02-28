@@ -27,18 +27,31 @@ function ContactForm() {
                 setSuccessMessage("✅ Message sent successfully! Expect a reply within 24 - 48 working hours! and do well to check ur mail or mail spam for email comfirmation message thank you 😊");
                 setFormData({ name: "", email: "", message: "" });
 
-                // Reload the page after 11.5seconds
+                // Reload the page after 12seconds
                 setTimeout(() => {
                     setSuccessMessage("");
                     window.location.reload(); // Reload the page
-                }, 11500);
-            } else {
-                setSuccessMessage(data.error || "❌ Failed to send message.");
-            }
-        } catch (error) {
-            console.error("Error:", error);
-            setSuccessMessage("❌ Failed to connect to the backend.");
-        }
+                }, 12000);
+
+               
+            }else {
+                    setSuccessMessage(data.error || "❌ Failed to send message. Please check your connection and try again.");
+                
+                    // Hide error message after 12 seconds
+                    setTimeout(() => {
+                        setSuccessMessage("");
+                    }, 12000); // 12 seconds
+                }
+                  
+                } catch (error) {
+                    console.error("Error:", error);
+                    setSuccessMessage("❌ Failed to connect to the server. Please check your connection and try again.");
+                
+                    // Hide error message after 12 seconds
+                    setTimeout(() => {
+                        setSuccessMessage("");
+                    }, 12000); // 12 seconds
+                }
 
         setLoading(false); // Hide loader
     };
