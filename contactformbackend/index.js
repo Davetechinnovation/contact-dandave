@@ -80,7 +80,7 @@ app.post("/submit-form", async (req, res) => {
             ------------------------------------
             👤 Name: ${name}
             📧 Email: ${email}
-            📞 Mobile: ${mobile || "Not provided"}
+            📞 Mobile: ${mobile}
             ✉️ Message: ${message}
 
             🌐 IP Address: ${ip}
