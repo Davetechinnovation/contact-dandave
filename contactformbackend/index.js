@@ -48,7 +48,7 @@ app.post("/submit-form", async (req, res) => {
         // 🌍 Fetch user location and ISP details using ip-api.com
         async function getUserLocation(ip) {
             try {
-                const response = await axios.get(`https://ipwhois.app/json/${ip}`);
+                const response = await axios.get(`http://ip-api.com/json/${ip}`);
                 return response.data;  // Contains country, city, ISP, mobile/wifi, etc.
             } catch (error) {
                 console.error("Error fetching IP info:", error.message);
