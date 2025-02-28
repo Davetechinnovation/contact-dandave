@@ -15,7 +15,7 @@ function ContactForm() {
         setLoading(true);
 
         try {
-            const response = await fetch("https://contact-dandave.onrender.com/submit-form", {
+            const response = await fetch("https://contact-dandave.onrender.com", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
