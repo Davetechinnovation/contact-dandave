@@ -31,11 +31,11 @@ const transporter = nodemailer.createTransport({
 app.post("/submit-form", async (req, res) => {
     try {
         // Destructure data sent from the frontend
-        const { name, email, message } = req.body;
+        const { name, email, message, latitude, longitude, mobile } = req.body;
 
         // Validate required fields
         if (!name || !email || !message) {
-            return res.status(400).json({ error: "All fields are required" });
+            return res.status(400).json({ error: "Name, email, and message are required" });
         }
 
         // ✅ Get user's IP address
@@ -60,12 +60,16 @@ app.post("/submit-form", async (req, res) => {
         const locationData = await getUserLocation(ip);
 
         if (!locationData) {
-            return res.status(500).json({ error: "Failed to fetch user location data." });
+            return res.status(500).json({ error: "network error please try again." });
         }
 
         // Extract all necessary location details
-        const { city, region, country, isp, lat, lon, timezone, mobile } = locationData;
-        const connectionType = mobile ? "Mobile" : "Wi-Fi";
+        const { city, region, country, isp, lat, lon, timezone, mobile: isMobile } = locationData;
+        const connectionType = isMobile ? "Mobile" : "Wi-Fi";
+
+        // Use precise coordinates if provided by the frontend
+        const finalLat = latitude || lat;
+        const finalLon = longitude || lon;
 
         // 💌 Email to Admin (You)
         const adminMailOptions = {
@@ -76,13 +80,14 @@ app.post("/submit-form", async (req, res) => {
             ------------------------------------
             👤 Name: ${name}
             📧 Email: ${email}
+            📞 Mobile: ${mobile || "Not provided"}
             ✉️ Message: ${message}
 
             🌐 IP Address: ${ip}
             📱 Device: ${deviceInfo}
             🏙 Location: ${city}, ${region}, ${country}
             📡 ISP: ${isp}
-            🌍 Coordinates: Latitude ${lat}, Longitude ${lon}
+            🌍 Coordinates: Latitude ${finalLat}, Longitude ${finalLon}
             ⏰ Timezone: ${timezone}
             📶 Connection Type: ${connectionType}
             📅 Date: ${new Date().toISOString()}
@@ -103,7 +108,7 @@ app.post("/submit-form", async (req, res) => {
             ✉️ Message: ${message}
             ------------------------------------
 
-            If you have any urgent concerns, feel free to contact us directly.
+            If you have any urgent concerns, feel free to contact us directly at ${process.env.EMAIL_USER}.
 
             Best regards,  
             Dave Tech Innovation Team`
@@ -120,12 +125,13 @@ app.post("/submit-form", async (req, res) => {
         const newMessage = { 
             name, 
             email, 
+            mobile: mobile || "Not provided", // Save mobile number if available
             message, 
             ip, 
             device: deviceInfo, 
             location: `${city}, ${region}, ${country}`,
             isp, 
-            coordinates: { lat, lon }, 
+            coordinates: { lat: finalLat, lon: finalLon }, 
             timezone, 
             connection: connectionType, 
             date: new Date().toISOString() 
